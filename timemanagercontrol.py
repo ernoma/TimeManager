@@ -292,12 +292,16 @@ class TimeManagerControl(QObject):
 
     def startAnimation(self):
         """kick-start the animation, afterwards the animation will run based on signal chains"""
-        self.scaleDifference = self.startScale - self.endScale
+        self.currentFrame = 0
+        self.totalFrameCount = self.timeLayerManager.getFrameCount()
+        self.scaleDifference = -(self.startScale - self.endScale)
         self.iface.zoomToActiveLayer() # NOTE: instead zoom to the feature layer 
         self.iface.mapCanvas().zoomScale(self.startScale) # minScale set by the user
         self.repaintLayers()
-        self.prevScale = self.startScale
         self.waitAfterRenderComplete()
+    
+    def easeOutExpo(self, currentFrame, startScale, changeInValue, frameCount):
+	    return changeInValue * ( - 2 ** (-10 * currentFrame / float(frameCount) ) + 1 ) + startScale
 
     def waitAfterRenderComplete(self, painter=None):
         """when the map canvas signals renderComplete, wait defined millisec until next animation step"""
@@ -427,18 +431,22 @@ class TimeManagerControl(QObject):
 
     def stepBackward(self):
         """move one step backward in time"""
-        self.currentScale = self.prevScale - (self.scaleDifference / self.timeLayerManager.getFrameCount())
+        self.currentFrame += 1
+        print "self.currentFrame", "self.startScale", "self.endScale", "self.totalFrameCount", self.currentFrame, self.startScale, self.endScale, self.totalFrameCount
+        self.currentScale = self.easeOutExpo(self.currentFrame, self.startScale, self.scaleDifference, self.totalFrameCount)
+        print self.currentScale
         self.iface.mapCanvas().zoomScale(self.currentScale)
         self.repaintLayers()
-        self.prevScale = self.currentScale
         self.timeLayerManager.stepBackward()
 
     def stepForward(self):
         """move one step forward in time"""
-        self.currentScale = self.prevScale - (self.scaleDifference / self.timeLayerManager.getFrameCount())
+        self.currentFrame += 1
+        print "self.currentFrame", "self.startScale", "self.endScale", "self.totalFrameCount", self.currentFrame, self.startScale, self.endScale, self.totalFrameCount
+        self.currentScale = self.easeOutExpo(self.currentFrame, self.startScale, self.scaleDifference, self.totalFrameCount)
+        print self.currentScale
         self.iface.mapCanvas().zoomScale(self.currentScale)
         self.repaintLayers()
-        self.prevScale = self.currentScale
         self.timeLayerManager.stepForward()
 
     def setTimeFrameType(self, timeFrameType):
