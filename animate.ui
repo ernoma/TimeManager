@@ -18,7 +18,7 @@
     <rect>
      <x>10</x>
      <y>20</y>
-     <width>435</width>
+     <width>445</width>
      <height>211</height>
     </rect>
    </property>
@@ -73,7 +73,7 @@
       <item>
        <widget class="QSpinBox" name="spinBoxDelay">
         <property name="minimum">
-         <number>100</number>
+         <number>10</number>
         </property>
         <property name="maximum">
          <number>99999</number>
