@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>769</width>
-    <height>415</height>
+    <width>781</width>
+    <height>489</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -43,79 +43,6 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="0" rowspan="4">
-      <widget class="QTableWidget" name="tableWidget">
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="columnCount">
-        <number>12</number>
-       </property>
-       <column>
-        <property name="text">
-         <string>Layer name</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Start</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>End (optional)</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Enabled</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Index</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Time format</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Offset</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Interpolation</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>ID</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Interp. mode</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Ignore for detect empty</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Accumulate features</string>
-        </property>
-       </column>
-      </widget>
-     </item>
      <item row="0" column="0">
       <widget class="QLabel" name="label">
        <property name="font">
@@ -126,19 +53,6 @@
        </property>
        <property name="text">
         <string>Layers:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="0">
-      <widget class="QLabel" name="label_2">
-       <property name="font">
-        <font>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>Animation Options:</string>
        </property>
       </widget>
      </item>
@@ -219,12 +133,138 @@
          </property>
         </widget>
        </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_5">
+         <property name="text">
+          <string>Start scale</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="2">
+        <widget class="QLabel" name="label_6">
+         <property name="text">
+          <string>End scale</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="3">
+        <widget class="QSpinBox" name="spinBoxEndScale">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>100000000</number>
+         </property>
+         <property name="value">
+          <number>200000</number>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QSpinBox" name="spinBoxStartScale">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>100000000</number>
+         </property>
+         <property name="value">
+          <number>50000000</number>
+         </property>
+        </widget>
+       </item>
       </layout>
      </item>
      <item row="2" column="1">
       <widget class="QPushButton" name="pushButtonAddRaster">
        <property name="text">
         <string>Add raster</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0" rowspan="4">
+      <widget class="QTableWidget" name="tableWidget">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="columnCount">
+        <number>12</number>
+       </property>
+       <column>
+        <property name="text">
+         <string>Layer name</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Start</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>End (optional)</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Enabled</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Index</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Time format</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Offset</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Interpolation</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>ID</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Interp. mode</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Ignore for detect empty</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Accumulate features</string>
+        </property>
+       </column>
+      </widget>
+     </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="label_2">
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Animation Options:</string>
        </property>
       </widget>
      </item>

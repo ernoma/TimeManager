@@ -136,6 +136,8 @@ class TimeManagerControl(QObject):
         self.animationActivated = False
         self.loopAnimation = False
         self.playBackwards = False
+        self.startScale = DEFAULT_START_SCALE
+        self.endScale = DEFAULT_END_SCALE
         self.animationFrameCounter = 0
         self.saveAnimation = False
         self.saveAnimationPath = os.path.expanduser('~')
@@ -233,11 +235,13 @@ class TimeManagerControl(QObject):
     def showQMessagesEnabled(self):
         return True
 
-    def setAnimationOptions(self, length, playBackwards, loopAnimation):
+    def setAnimationOptions(self, length, playBackwards, loopAnimation, startScale, endScale):
         """set length and play direction of the animation"""
         self.animationFrameLength = length
         self.playBackwards = playBackwards
         self.loopAnimation = loopAnimation
+        self.startScale = startScale
+        self.endScale = endScale
 
     def showOptionsDialog(self):
         """show options dialog"""
@@ -288,6 +292,11 @@ class TimeManagerControl(QObject):
 
     def startAnimation(self):
         """kick-start the animation, afterwards the animation will run based on signal chains"""
+        self.scaleDifference = self.startScale - self.endScale
+        self.iface.zoomToActiveLayer() # NOTE: instead zoom to the feature layer 
+        self.iface.mapCanvas().zoomScale(self.startScale) # minScale set by the user
+        self.repaintLayers()
+        self.prevScale = self.startScale
         self.waitAfterRenderComplete()
 
     def waitAfterRenderComplete(self, painter=None):
@@ -418,10 +427,18 @@ class TimeManagerControl(QObject):
 
     def stepBackward(self):
         """move one step backward in time"""
+        self.currentScale = self.prevScale - (self.scaleDifference / self.timeLayerManager.getFrameCount())
+        self.iface.mapCanvas().zoomScale(self.currentScale)
+        self.repaintLayers()
+        self.prevScale = self.currentScale
         self.timeLayerManager.stepBackward()
 
     def stepForward(self):
         """move one step forward in time"""
+        self.currentScale = self.prevScale - (self.scaleDifference / self.timeLayerManager.getFrameCount())
+        self.iface.mapCanvas().zoomScale(self.currentScale)
+        self.repaintLayers()
+        self.prevScale = self.currentScale
         self.timeLayerManager.stepForward()
 
     def setTimeFrameType(self, timeFrameType):
@@ -491,6 +508,8 @@ class TimeManagerControl(QObject):
             settings = {'animationFrameLength': self.animationFrameLength,
                         'playBackwards': self.playBackwards,
                         'loopAnimation': self.loopAnimation,
+                        'startScale': self.startScale,
+                        'endScale': self.endScale,
                         'timeLayerManager': timeLayerManagerSettings,
                         'timeLayerList': timeLayerList,
                         'currentMapTimePosition':
@@ -513,6 +532,8 @@ class TimeManagerControl(QObject):
     METASETTINGS['animationFrameLength'] = int
     METASETTINGS['playBackwards'] = int
     METASETTINGS['loopAnimation'] = int
+    METASETTINGS['startScale'] = int
+    METASETTINGS['endScale'] = int
     METASETTINGS['timeLayerManager'] = str
     METASETTINGS['timeLayerList'] = list
     METASETTINGS['currentMapTimePosition'] = str  # can't store datetime in XML
@@ -535,6 +556,8 @@ class TimeManagerControl(QObject):
             'animationFrameLength': (self.setAnimationFrameLength, DEFAULT_FRAME_LENGTH),
             'playBackwards': (self.setPlayBackwards, 0),
             'loopAnimation': (self.setLoopAnimation, 0),
+            'startScale': (self.setStartScale, DEFAULT_START_SCALE),
+            'endScale': (self.setEndScale, DEFAULT_END_SCALE),
             'timeLayerManager': (self.restoreSettingTimeLayerManager, None),
             'timeLayerList': (self.restoreTimeLayers, None),
             'timeFrameType': (self.restoreTimeFrameType, DEFAULT_FRAME_UNIT),
@@ -559,6 +582,12 @@ class TimeManagerControl(QObject):
 
     def setLoopAnimation(self, value):
         self.loopAnimation = value
+
+    def setStartScale(self, value):
+        self.startScale = value
+
+    def setEndScale(self, value):
+        self.endScale = value
 
     def restoreTimePositionFromSettings(self, value):
         """Restore the time position from settings"""
@@ -616,7 +645,9 @@ class TimeManagerControl(QObject):
                 animationFrameLength = self.guiControl.optionsDialog.spinBoxFrameLength.value()
                 playBackwards = self.guiControl.optionsDialog.checkBoxBackwards.isChecked()
                 loopAnimation = self.guiControl.optionsDialog.checkBoxLoop.isChecked()
-                self.setAnimationOptions(animationFrameLength, playBackwards, loopAnimation)
+                startScale = self.guiControl.optionsDialog.spinBoxStartScale.value()
+                endScale = self.guiControl.optionsDialog.spinBoxEndScale.value()
+                self.setAnimationOptions(animationFrameLength, playBackwards, loopAnimation, startScale, endScale)
                 self.guiControl.exportEmpty = not \
                     self.guiControl.optionsDialog.checkBoxDontExportEmpty.isChecked()
                 self.guiControl.showLabel = self.guiControl.optionsDialog.checkBoxLabel.isChecked()
@@ -654,3 +685,9 @@ class TimeManagerControl(QObject):
         else:  # if the status indicates "off"
             self.timeLayerManager.deactivateTimeManagement()
             self.guiControl.setActive(False)
+
+    def repaintLayers(self):
+        layers = self.iface.legendInterface().layers()
+        for layer in layers:
+            layer.triggerRepaint()
+
