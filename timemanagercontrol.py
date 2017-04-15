@@ -235,13 +235,14 @@ class TimeManagerControl(QObject):
     def showQMessagesEnabled(self):
         return True
 
-    def setAnimationOptions(self, length, playBackwards, loopAnimation, startScale, endScale):
+    def setAnimationOptions(self, length, playBackwards, loopAnimation, startScale, endScale, easingCheckedName):
         """set length and play direction of the animation"""
         self.animationFrameLength = length
         self.playBackwards = playBackwards
         self.loopAnimation = loopAnimation
         self.startScale = startScale
         self.endScale = endScale
+        self.easingCheckedName = easingCheckedName
 
     def showOptionsDialog(self):
         """show options dialog"""
@@ -300,9 +301,6 @@ class TimeManagerControl(QObject):
         self.repaintLayers()
         self.waitAfterRenderComplete()
     
-    def easeOutExpo(self, currentFrame, startScale, changeInValue, frameCount):
-	    return changeInValue * ( - 2 ** (-10 * currentFrame / float(frameCount) ) + 1 ) + startScale
-
     def waitAfterRenderComplete(self, painter=None):
         """when the map canvas signals renderComplete, wait defined millisec until next animation step"""
         if self.saveAnimation:  # make animation/export run as fast as possible
@@ -431,23 +429,45 @@ class TimeManagerControl(QObject):
 
     def stepBackward(self):
         """move one step backward in time"""
+        #print "self.currentFrame", "self.startScale", "self.endScale", "self.totalFrameCount", self.currentFrame, self.startScale, self.endScale, self.totalFrameCount
+        self.currentScale = self.getCurrentScale()
         self.currentFrame += 1
-        print "self.currentFrame", "self.startScale", "self.endScale", "self.totalFrameCount", self.currentFrame, self.startScale, self.endScale, self.totalFrameCount
-        self.currentScale = self.easeOutExpo(self.currentFrame, self.startScale, self.scaleDifference, self.totalFrameCount)
-        print self.currentScale
+        #print self.currentScale
+        #print self.easingCheckedName
         self.iface.mapCanvas().zoomScale(self.currentScale)
         self.repaintLayers()
         self.timeLayerManager.stepBackward()
 
     def stepForward(self):
         """move one step forward in time"""
+        # print "self.currentFrame", "self.startScale", "self.endScale", "self.totalFrameCount", self.currentFrame, self.startScale, self.endScale, self.totalFrameCount
+        self.currentScale = self.getCurrentScale()
         self.currentFrame += 1
-        print "self.currentFrame", "self.startScale", "self.endScale", "self.totalFrameCount", self.currentFrame, self.startScale, self.endScale, self.totalFrameCount
-        self.currentScale = self.easeOutExpo(self.currentFrame, self.startScale, self.scaleDifference, self.totalFrameCount)
-        print self.currentScale
+        #print self.currentScale
+        #print self.easingCheckedName
         self.iface.mapCanvas().zoomScale(self.currentScale)
         self.repaintLayers()
         self.timeLayerManager.stepForward()
+
+    def getCurrentScale(self):
+        if self.easingCheckedName == 'Out exponential':
+           return self.easeOutExpo(self.currentFrame, self.startScale, self.scaleDifference, self.totalFrameCount)
+        elif self.easingCheckedName == 'Out circular':
+            return self.easeOutCirc(self.currentFrame, self.startScale, self.scaleDifference, self.totalFrameCount)
+        elif self.easingCheckedName == 'Out sinusoidal':
+            return self.easeOutSin(self.currentFrame, self.startScale, self.scaleDifference, self.totalFrameCount)
+        elif self.easingCheckedName == 'Linear':
+            return self.easeLinear(self.currentFrame, self.startScale, self.scaleDifference, self.totalFrameCount)
+        elif self.easingCheckedName == 'In out circular':
+            return self.easeInOutCirc(self.currentFrame, self.startScale, self.scaleDifference, self.totalFrameCount)
+        elif self.easingCheckedName == 'In out sinusoidal':
+            return self.easeInOutSin(self.currentFrame, self.startScale, self.scaleDifference, self.totalFrameCount)
+        elif self.easingCheckedName == 'In exponential':
+            return self.easeInExpo(self.currentFrame, self.startScale, self.scaleDifference, self.totalFrameCount)
+        elif self.easingCheckedName == 'In circular':
+            return self.easeInCirc(self.currentFrame, self.startScale, self.scaleDifference, self.totalFrameCount)
+        elif self.easingCheckedName == 'In sinusoidal':
+            return self.easeInSin(self.currentFrame, self.startScale, self.scaleDifference, self.totalFrameCount)
 
     def setTimeFrameType(self, timeFrameType):
         """set timeLayerManager's time frame type from a potentially foreign languange string"""
@@ -655,7 +675,8 @@ class TimeManagerControl(QObject):
                 loopAnimation = self.guiControl.optionsDialog.checkBoxLoop.isChecked()
                 startScale = self.guiControl.optionsDialog.spinBoxStartScale.value()
                 endScale = self.guiControl.optionsDialog.spinBoxEndScale.value()
-                self.setAnimationOptions(animationFrameLength, playBackwards, loopAnimation, startScale, endScale)
+                easingCheckedName = self.guiControl.optionsDialog.buttonGroupEasing.checkedButton().text()
+                self.setAnimationOptions(animationFrameLength, playBackwards, loopAnimation, startScale, endScale, easingCheckedName)
                 self.guiControl.exportEmpty = not \
                     self.guiControl.optionsDialog.checkBoxDontExportEmpty.isChecked()
                 self.guiControl.showLabel = self.guiControl.optionsDialog.checkBoxLabel.isChecked()
@@ -698,4 +719,41 @@ class TimeManagerControl(QObject):
         layers = self.iface.legendInterface().layers()
         for layer in layers:
             layer.triggerRepaint()
+
+    def easeOutExpo(self, currentFrame, startScale, changeInValue, frameCount):
+	    return changeInValue * ( - 2 ** (-10 * currentFrame / float(frameCount) ) + 1 ) + startScale
+
+    def easeOutCirc(self, currentFrame, startScale, changeInValue, frameCount):
+        t = currentFrame / float(frameCount)
+        t -= 1
+        return changeInValue * math.sqrt(1 - t * t) + startScale
+
+    def easeOutSin(self, currentFrame, startScale, changeInValue, frameCount):
+        return changeInValue * math.sin(currentFrame / float(frameCount) * (math.pi / 2)) + startScale
+
+    def easeInExpo(self, currentFrame, startScale, changeInValue, frameCount):
+        if currentFrame == 0:
+            return startScale
+        return changeInValue * ( 2 ** (10 * (currentFrame / float(frameCount) - 1))) + startScale
+
+    def easeInCirc(self, currentFrame, startScale, changeInValue, frameCount):
+        t = currentFrame / float(frameCount)
+        return -changeInValue * (math.sqrt(1 - t * t) - 1) + startScale
+
+    def easeInSin(self, currentFrame, startScale, changeInValue, frameCount):
+        return -changeInValue * math.cos(currentFrame / float(frameCount) * (math.pi / 2)) + changeInValue + startScale
+
+    def easeLinear(self, currentFrame, startScale, changeInValue, frameCount):
+        return changeInValue * currentFrame / float(frameCount) + startScale
+
+    def easeInOutCirc(self, currentFrame, startScale, changeInValue, frameCount):
+        t = currentFrame / (frameCount / 2.0)
+        if t < 1:
+            return -changeInValue / 2.0 * (math.sqrt(1 - t * t) - 1) + startScale
+        t -= 2
+        return changeInValue / 2.0 * (math.sqrt(1 - t * t) + 1) + startScale
+
+    def easeInOutSin(self, currentFrame, startScale, changeInValue, frameCount):
+        return -changeInValue / 2.0 * (math.cos(math.pi * currentFrame / float(frameCount)) - 1) + startScale
+
 
