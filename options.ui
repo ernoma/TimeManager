@@ -138,6 +138,19 @@
      </item>
      <item row="6" column="0">
       <layout class="QGridLayout" name="gridLayout_2">
+       <item row="5" column="1">
+        <widget class="QSpinBox" name="spinBoxStartScale">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>100000000</number>
+         </property>
+         <property name="value">
+          <number>50000000</number>
+         </property>
+        </widget>
+       </item>
        <item row="0" column="0">
         <widget class="QLabel" name="label_3">
          <property name="text">
@@ -213,21 +226,21 @@
          </property>
         </widget>
        </item>
-       <item row="4" column="0">
+       <item row="5" column="0">
         <widget class="QLabel" name="label_5">
          <property name="text">
           <string>Start scale</string>
          </property>
         </widget>
        </item>
-       <item row="4" column="2">
+       <item row="5" column="2">
         <widget class="QLabel" name="label_6">
          <property name="text">
           <string>End scale</string>
          </property>
         </widget>
        </item>
-       <item row="4" column="3">
+       <item row="5" column="3">
         <widget class="QSpinBox" name="spinBoxEndScale">
          <property name="minimum">
           <number>1</number>
@@ -240,20 +253,7 @@
          </property>
         </widget>
        </item>
-       <item row="4" column="1">
-        <widget class="QSpinBox" name="spinBoxStartScale">
-         <property name="minimum">
-          <number>1</number>
-         </property>
-         <property name="maximum">
-          <number>100000000</number>
-         </property>
-         <property name="value">
-          <number>50000000</number>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="3">
+       <item row="7" column="3">
         <widget class="QRadioButton" name="radioButtonEasingInSin">
          <property name="text">
           <string>In sinusoidal</string>
@@ -263,7 +263,7 @@
          </attribute>
         </widget>
        </item>
-       <item row="7" column="1">
+       <item row="8" column="1">
         <widget class="QRadioButton" name="radioButtonEasingOutCirc">
          <property name="text">
           <string>Out circular</string>
@@ -273,7 +273,7 @@
          </attribute>
         </widget>
        </item>
-       <item row="5" column="1">
+       <item row="6" column="1">
         <widget class="QRadioButton" name="radioButtonEasingOutExp">
          <property name="text">
           <string>Out exponential</string>
@@ -286,7 +286,7 @@
          </attribute>
         </widget>
        </item>
-       <item row="6" column="2">
+       <item row="7" column="2">
         <widget class="QRadioButton" name="radioButtonEasingInOutSin">
          <property name="text">
           <string>In out sinusoidal</string>
@@ -296,14 +296,14 @@
          </attribute>
         </widget>
        </item>
-       <item row="5" column="0">
+       <item row="6" column="0">
         <widget class="QLabel" name="label_7">
          <property name="text">
           <string>Easing function to use in zoom</string>
          </property>
         </widget>
        </item>
-       <item row="6" column="1">
+       <item row="7" column="1">
         <widget class="QRadioButton" name="radioButtonEasingOutSin">
          <property name="text">
           <string>Out sinusoidal</string>
@@ -313,7 +313,7 @@
          </attribute>
         </widget>
        </item>
-       <item row="6" column="0">
+       <item row="7" column="0">
         <spacer name="horizontalSpacer_2">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -326,7 +326,7 @@
          </property>
         </spacer>
        </item>
-       <item row="7" column="0">
+       <item row="8" column="0">
         <spacer name="horizontalSpacer_3">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -339,7 +339,7 @@
          </property>
         </spacer>
        </item>
-       <item row="5" column="3">
+       <item row="6" column="3">
         <widget class="QRadioButton" name="radioButtonEasingInExp">
          <property name="text">
           <string>In exponential</string>
@@ -349,7 +349,7 @@
          </attribute>
         </widget>
        </item>
-       <item row="7" column="3">
+       <item row="8" column="3">
         <widget class="QRadioButton" name="radioButtonEasingInCirc">
          <property name="text">
           <string>In circular</string>
@@ -359,7 +359,7 @@
          </attribute>
         </widget>
        </item>
-       <item row="5" column="2">
+       <item row="6" column="2">
         <widget class="QRadioButton" name="radioButtonEasingLin">
          <property name="text">
           <string>Linear</string>
@@ -369,7 +369,7 @@
          </attribute>
         </widget>
        </item>
-       <item row="7" column="2">
+       <item row="8" column="2">
         <widget class="QRadioButton" name="radioButtonEasingInOutCirc">
          <property name="text">
           <string>In out circular</string>
@@ -377,6 +377,20 @@
          <attribute name="buttonGroup">
           <string notr="true">buttonGroupEasing</string>
          </attribute>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QCheckBox" name="checkBoxTitle">
+         <property name="text">
+          <string>Display title on map</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="3">
+        <widget class="QPushButton" name="show_title_options_button">
+         <property name="text">
+          <string>Title options</string>
+         </property>
         </widget>
        </item>
       </layout>

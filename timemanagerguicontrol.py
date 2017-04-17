@@ -21,6 +21,7 @@ from bcdate_util import BCDate
 import conf
 import qgis_utils as qgs
 from ui import label_options
+from ui import title_options
 import layer_settings as ls
 from vectorlayerdialog import VectorLayerDialog, AddLayerDialog
 from rasterlayerdialog import RasterLayerDialog
@@ -69,6 +70,23 @@ class TimestampLabelConfig(object):
             return "Seconds elapsed: {}".format((dt - min_dt).total_seconds())
         else:
             raise Exception("Unsupported type {}".format(self.type))
+            
+class TitleConfig(object):
+    """Object that has the settings for rendering the title. Can be customized via the UI"""
+    PLACEMENTS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
+    DEFAULT_FONT_SIZE = 8
+    font = "Arial"  # Font names or family, comma-separated CSS style
+    size = DEFAULT_FONT_SIZE  # Relative values between 1-7
+    placement = 'N'  # Choose from
+    color = 'black'  # Text color as name, rgb(RR,GG,BB), or #XXXXXX
+    bgcolor = 'white'  # Background color as name, rgb(RR,GG,BB), or #XXXXXX
+    title = ''
+
+    def __init__(self, model):
+        self.model = model
+
+    def getTitle(self):
+        return self.title
 
 class TimeManagerGuiControl(QObject):
     """This class controls all plugin-related GUI elements. Emitted signals are defined here."""
@@ -117,6 +135,8 @@ class TimeManagerGuiControl(QObject):
 
         # this signal is responsible for rendering the label
         self.iface.mapCanvas().renderComplete.connect(self.renderLabel)
+        # this signal is responsible for rendering the title
+        self.iface.mapCanvas().renderComplete.connect(self.renderTitle)
 
         # create shortcuts
         self.focusSC = QShortcut(QKeySequence("Ctrl+Space"), self.dock)
@@ -128,8 +148,10 @@ class TimeManagerGuiControl(QObject):
         self.dock.horizontalTimeSlider.setMaximum(conf.MAX_TIMESLIDER_DEFAULT)
         self.dock.dateTimeEditCurrentTime.setMinimumDate(MIN_QDATE)
         self.showLabel = conf.DEFAULT_SHOW_LABEL
+        self.showTitle = conf.DEFAULT_SHOW_TITLE
         self.exportEmpty = conf.DEFAULT_EXPORT_EMPTY
         self.labelOptions = TimestampLabelConfig(self.model)
+        self.titleOptions = TitleConfig(self.model)
 
         # placeholders for widgets that are added dynamically
         self.bcdateSpinBox = None
@@ -202,6 +224,23 @@ class TimeManagerGuiControl(QObject):
 
         self.dialog.show()
 
+    def showTitleOptions(self):
+        # TODO maybe more clearly
+        self.dialog = QtGui.QDialog()
+        self.titleOptionsDialog = title_options.Ui_titleOptions()
+        self.titleOptionsDialog.setupUi(self.dialog)
+        self.titleOptionsDialog.titleEdit.setText(self.titleOptions.title)
+        self.titleOptionsDialog.fontsize.setValue(self.titleOptions.size)
+        self.titleOptionsDialog.font.setCurrentFont(QFont(self.titleOptions.font))
+        self.titleOptionsDialog.placement.addItems(TitleConfig.PLACEMENTS)
+        self.titleOptionsDialog.placement.setCurrentIndex(TitleConfig.PLACEMENTS.index(
+            self.titleOptions.placement))
+        self.titleOptionsDialog.text_color.setColor(QColor(self.titleOptions.color))
+        self.titleOptionsDialog.bg_color.setColor(QColor(self.titleOptions.bgcolor))
+        self.titleOptionsDialog.buttonBox.accepted.connect(self.saveTitleOptions)
+
+        self.dialog.show()
+
     def saveLabelOptions(self):
         self.labelOptions.font = self.labelOptionsDialog.font.currentFont().family()
         self.labelOptions.size = self.labelOptionsDialog.fontsize.value()
@@ -215,6 +254,14 @@ class TimeManagerGuiControl(QObject):
             self.labelOptions.type = "beginning"
         if self.labelOptionsDialog.radioButton_epoch.isChecked():
             self.labelOptions.type = "epoch"
+
+    def saveTitleOptions(self):
+        self.titleOptions.title = self.titleOptionsDialog.titleEdit.text()
+        self.titleOptions.font = self.titleOptionsDialog.font.currentFont().family()
+        self.titleOptions.size = self.titleOptionsDialog.fontsize.value()
+        self.titleOptions.bgcolor = self.titleOptionsDialog.bg_color.color().name()
+        self.titleOptions.color = self.titleOptionsDialog.text_color.color().name()
+        self.titleOptions.placement = self.titleOptionsDialog.placement.currentText()
 
     def enableArchaeologyTextBox(self):
         self.dock.dateTimeEditCurrentTime.dateTimeChanged.connect(self.currentTimeChangedDateText)
@@ -271,7 +318,7 @@ class TimeManagerGuiControl(QObject):
 
     def toggleTimeClicked(self):
         self.toggleTime.emit()
-
+        
     def archaeologyClicked(self):
         self.toggleArchaeology.emit()
 
@@ -350,10 +397,13 @@ class TimeManagerGuiControl(QObject):
         self.optionsDialog.spinBoxFrameLength.setValue(animationFrameLength)
         self.optionsDialog.checkBoxBackwards.setChecked(playBackwards)
         self.optionsDialog.checkBoxLabel.setChecked(self.showLabel)
+        self.optionsDialog.checkBoxTitle.setChecked(self.showTitle)
         self.optionsDialog.checkBoxDontExportEmpty.setChecked(not self.exportEmpty)
         self.optionsDialog.checkBoxLoop.setChecked(loopAnimation)
         self.optionsDialog.show_label_options_button.clicked.connect(self.showLabelOptions)
+        self.optionsDialog.show_title_options_button.clicked.connect(self.showTitleOptions)
         self.optionsDialog.checkBoxLabel.stateChanged.connect(self.showOrHideLabelOptions)
+        self.optionsDialog.checkBoxTitle.stateChanged.connect(self.showOrHideTitleOptions)
 
         # show dialog
         self.showOrHideLabelOptions()
@@ -376,6 +426,10 @@ class TimeManagerGuiControl(QObject):
     def showOrHideLabelOptions(self):
         self.optionsDialog.show_label_options_button.setEnabled(
             self.optionsDialog.checkBoxLabel.isChecked())
+            
+    def showOrHideTitleOptions(self):
+        self.optionsDialog.show_title_options_button.setEnabled(
+            self.optionsDialog.checkBoxTitle.isChecked())
 
     def showHelp(self):
         """show the help dialog"""
@@ -469,6 +523,51 @@ class TimeManagerGuiControl(QObject):
         html = '<span style="background-color:%s; padding: 5px;"><font face="%s" size="%s" color="%s">%s</font></span>'\
             % (self.labelOptions.bgcolor, self.labelOptions.font, self.labelOptions.size,
                 self.labelOptions.color, labelString)
+        txt.setHtml(html)
+        layout = txt.documentLayout()
+        size = layout.documentSize()
+
+        if flags & Qt.AlignRight:
+            x = width - 5 - size.width()
+        elif flags & Qt.AlignLeft:
+            x = 5
+        else:
+            x = width / 2 - size.width() / 2
+
+        if flags & Qt.AlignBottom:
+            y = height - 5 - size.height()
+        elif flags & Qt.AlignTop:
+            y = 5
+        else:
+            y = height / 2 - size.height() / 2
+
+        painter.translate(x, y)
+        layout.draw(painter, QAbstractTextDocumentLayout.PaintContext())
+        painter.translate(-x, -y)  # translate back
+
+    def renderTitle(self, painter):
+        """render the title on the map canvas"""
+        if not self.showTitle or not self.model.hasLayers():
+            return
+
+        titleString = self.titleOptions.getTitle()
+
+        # Determine placement of label given cardinal directions
+        flags = 0
+        for direction, flag in ('N', Qt.AlignTop), ('S', Qt.AlignBottom),\
+                ('E', Qt.AlignRight), ('W', Qt.AlignLeft):
+            if direction in self.titleOptions.placement:
+                flags |= flag
+
+        # Get canvas dimensions
+        width = painter.device().width()
+        height = painter.device().height()
+
+        painter.setRenderHint(painter.Antialiasing, True)
+        txt = QTextDocument()
+        html = '<span style="background-color:%s; padding: 5px;"><font face="%s" size="%s" color="%s">%s</font></span>'\
+            % (self.titleOptions.bgcolor, self.titleOptions.font, self.titleOptions.size,
+                self.titleOptions.color, titleString)
         txt.setHtml(html)
         layout = txt.documentLayout()
         size = layout.documentSize()

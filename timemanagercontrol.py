@@ -60,6 +60,7 @@ class TimeManagerControl(QObject):
         self.iface.unregisterMainWindowAction(self.actionShowSettings)
         self.guiControl.unload()
 
+
         self.iface.projectRead.disconnect(self.readSettings)
         self.iface.newProjectCreated.disconnect(self.restoreDefaults)
         self.iface.newProjectCreated.disconnect(self.disableAnimationExport)
@@ -680,6 +681,7 @@ class TimeManagerControl(QObject):
                 self.guiControl.exportEmpty = not \
                     self.guiControl.optionsDialog.checkBoxDontExportEmpty.isChecked()
                 self.guiControl.showLabel = self.guiControl.optionsDialog.checkBoxLabel.isChecked()
+                self.guiControl.showTitle = self.guiControl.optionsDialog.checkBoxTitle.isChecked()
                 self.guiControl.refreshMapCanvas('saveOptions')
                 self.guiControl.dock.pushButtonExportVideo.setEnabled(True)
             except:
